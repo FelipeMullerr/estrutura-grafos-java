@@ -17,6 +17,21 @@ public class GrafoMatriz extends Grafo {
     }
 
     @Override
+    public int tamanhoGrafo() {
+        return tamanho;
+    }
+
+    @Override
+    public int indiceVertice(String label) {
+        for (int i = 0; i < tamanho; i++) {
+            if (vertices[i].equals(label)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
     public boolean inserirVertice(String label) {
         String[] novoVertices = new String[tamanho + 1];
         float[][] novaMatriz = new float[tamanho + 1][tamanho + 1];
@@ -76,16 +91,16 @@ public class GrafoMatriz extends Grafo {
 
     @Override
     public void imprimeGrafo() {
-        System.out.print("\t" + " ");
+        System.out.print("\t\t  ");
         for (int i = 0; i < tamanho; i++) {
-            System.out.print(vertices[i] + "\t" + " ");
+            System.out.printf("%-8s", vertices[i]);
         }
         System.out.println();
 
         for (int i = 0; i < tamanho; i++) {
-            System.out.print(vertices[i] + "\t");
+            System.out.printf("%-8s", vertices[i]);
             for (int j = 0; j < tamanho; j++) {
-                System.out.print(matriz[i][j] + "\t");
+                System.out.printf("%-8.1f", matriz[i][j]);
             }
             System.out.println();
         }
