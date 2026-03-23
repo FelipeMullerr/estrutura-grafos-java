@@ -1,74 +1,242 @@
 package grafos;
 
+import java.util.Scanner;
+
 public class Main {
 
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Grafo grafo = null;
 
-        System.out.println("grafo lista direcionada e ponderada");
-
-        Grafo gLista = new GrafoLista(false, true);
-
-        gLista.inserirVertice("A");
-        gLista.inserirVertice("B");
-        gLista.inserirVertice("C");
-        gLista.inserirVertice("D");
-
-        gLista.inserirAresta(0, 1, 2); // A-B
-        gLista.inserirAresta(0, 2, 3); // A-C
-        gLista.inserirAresta(1, 3, 4); // B-D
-
-        gLista.imprimeGrafo();
-
-        System.out.println("\nverificar se existe aresta entre A e B: " + gLista.existeAresta(0, 1));
-        System.out.println("peso da aresta entre A e B: " + gLista.pesoAresta(0, 1));
-
-        System.out.println("vizinhos de A:");
-        for (int v : gLista.retornarVizinhos(0)) {
-            System.out.print(gLista.labelVertice(v) + " ");
+        System.out.println("=== Configuracao do Grafo ===");
+        System.out.println("Tipo de representacao:");
+        System.out.println("1 - Lista de Adjacencia");
+        System.out.println("2 - Matriz de Adjacencia");
+        System.out.print("Escolha: ");
+        int tipoRepresentacao = scanner.nextInt();
+        while (tipoRepresentacao != 1 && tipoRepresentacao != 2) {
+            System.out.print("Entrada invalida. Digite 1 para Lista ou 2 para Matriz: ");
+            tipoRepresentacao = scanner.nextInt();
         }
 
-        System.out.println("\n\nremover aresta A-B");
-        gLista.removerAresta(0, 1);
-        gLista.imprimeGrafo();
+        System.out.print("Direcionado? (1 = sim, 0 = nao): ");
+        int entradaDirecionado = scanner.nextInt();
+        while (entradaDirecionado != 0 && entradaDirecionado != 1) {
+            System.out.print("Entrada invalida. Digite 1 para sim ou 0 para nao: ");
+            entradaDirecionado = scanner.nextInt();
+        }
+        boolean direcionado = entradaDirecionado == 1;
 
-        System.out.println("\nremover vertice C");
-        gLista.removerVertice(2);
-        gLista.imprimeGrafo();
+        System.out.print("Ponderado? (1 = sim, 0 = nao): ");
+        int entradaPonderado = scanner.nextInt();
+        while (entradaPonderado != 0 && entradaPonderado != 1) {
+            System.out.print("Entrada invalida. Digite 1 para sim ou 0 para nao: ");
+            entradaPonderado = scanner.nextInt();
+        }
+        boolean ponderado = entradaPonderado == 1;
 
-         //
-         //
-         //
-         //
-
-        System.out.println("\n\n\ngrafo matriz nao direcionada e ponderada");
-
-        Grafo gMatriz = new GrafoMatriz(false, true);
-
-        gMatriz.inserirVertice("A");
-        gMatriz.inserirVertice("B");
-        gMatriz.inserirVertice("C");
-        gMatriz.inserirVertice("D");
-
-        gMatriz.inserirAresta(0, 1, 2); // A-B
-        gMatriz.inserirAresta(0, 2, 3); // A-C
-        gMatriz.inserirAresta(1, 3, 4); // B-D
-
-        gMatriz.imprimeGrafo();
-
-        System.out.println("\nverificar se existe aresta entre A e B: " + gMatriz.existeAresta(0, 1));
-        System.out.println("peso da aresta entre A e B: " + gMatriz.pesoAresta(0, 1));
-
-        System.out.println("vizinhos de A:");
-        for (int v : gMatriz.retornarVizinhos(0)) {
-            System.out.print(gMatriz.labelVertice(v) + " ");
+        if (tipoRepresentacao == 1) {
+            grafo = new GrafoLista(direcionado, ponderado);
+        } else {
+            grafo = new GrafoMatriz(direcionado, ponderado);
         }
 
-        System.out.println("\n\nremover aresta A-B");
-        gMatriz.removerAresta(0, 1);
-        gMatriz.imprimeGrafo();
+        System.out.println("Grafo criado\n");
 
-        System.out.println("\nremover vertice C");
-        gMatriz.removerVertice(2);
-        gMatriz.imprimeGrafo();
+        int opcao = -1;
+        while (opcao != 0) {
+            System.out.println("\n=== Menu ===");
+            System.out.println("1  - Inserir vertice");
+            System.out.println("2  - Remover vertice");
+            System.out.println("3  - Inserir aresta");
+            System.out.println("4  - Remover aresta");
+            System.out.println("5  - Verificar se aresta existe");
+            System.out.println("6  - Retornar vizinhos");
+            System.out.println("7  - Imprimir grafo");
+            System.out.println("8  - Busca em Largura (BFS)");
+            System.out.println("9  - Busca em Profundidade (DFS)");
+            System.out.println("10 - Dijkstra");
+            System.out.println("0  - Sair");
+            System.out.print("Escolha: ");
+            opcao = scanner.nextInt();
+
+            switch (opcao) {
+
+                case 1:
+                    System.out.print("Nome do vertice: ");
+                    String nomeVertice = scanner.next();
+                    grafo.inserirVertice(nomeVertice);
+                    System.out.println("Vertice '" + nomeVertice + "' inserid.");
+                    break;
+
+                case 2:
+                    System.out.print("Nome do vertice a remover: ");
+                    String nomeRemover = scanner.next();
+                    int indiceRemover = grafo.indiceVertice(nomeRemover);
+
+                    if (indiceRemover == -1) {
+                        System.out.println("Vertice '" + nomeRemover + "' nao encontrado.");
+                        break;
+                    }
+
+                    grafo.removerVertice(indiceRemover);
+                    System.out.println("Vertice '" + nomeRemover + "' removido.");
+                    break;
+
+                case 3:
+                    System.out.print("Vertice de origem: ");
+                    String nomeOrigem = scanner.next();
+                    System.out.print("Vertice de destino: ");
+                    String nomeDestino = scanner.next();
+                    int indiceOrigem  = grafo.indiceVertice(nomeOrigem);
+                    int indiceDestino = grafo.indiceVertice(nomeDestino);
+
+                    if (indiceOrigem == -1) {
+                        System.out.println("Vertice '" + nomeOrigem + "' nao encontrado.");
+                        break;
+                    }
+                    if (indiceDestino == -1) {
+                        System.out.println("Vertice '" + nomeDestino + "' nao encontrado.");
+                        break;
+                    }
+
+                    if (grafo.existeAresta(indiceOrigem, indiceDestino)) {
+                        System.out.println("Aresta entre '" + nomeOrigem + "' e '" + nomeDestino + "' ja existe!");
+                        break;
+                    }
+
+                    float peso = 1;
+                    if (ponderado) {
+                        System.out.print("Peso da aresta: ");
+                        peso = scanner.nextFloat();
+                    }
+
+                    grafo.inserirAresta(indiceOrigem, indiceDestino, peso);
+                    System.out.println("Aresta inserida.");
+                    break;
+
+                case 4:
+                    System.out.print("Vertice de origem: ");
+                    String nomeOrigemRemover = scanner.next();
+                    System.out.print("Vertice de destino: ");
+                    String nomeDestinoRemover = scanner.next();
+
+                    int indiceOrigemRemover  = grafo.indiceVertice(nomeOrigemRemover);
+                    int indiceDestinoRemover = grafo.indiceVertice(nomeDestinoRemover);
+
+                    if (indiceOrigemRemover == -1) {
+                        System.out.println("Vertice '" + nomeOrigemRemover + "' nao encontrado.");
+                        break;
+                    }
+                    if (indiceDestinoRemover == -1) {
+                        System.out.println("Vertice '" + nomeDestinoRemover + "' nao encontrado.");
+                        break;
+                    }
+
+                    if(!grafo.existeAresta(indiceOrigemRemover,indiceDestinoRemover)) {
+                        System.out.println("Nao existe aresta entre os vertices " + nomeOrigemRemover + " e " + nomeDestinoRemover + ".");
+                        break;
+                    }
+                    grafo.removerAresta(indiceOrigemRemover, indiceDestinoRemover);
+                    System.out.println("Aresta removida.");
+                    break;
+
+                case 5:
+                    System.out.print("Vertice de origem: ");
+                    String nomeOrigemExiste = scanner.next();
+                    System.out.print("Vertice de destino: ");
+                    String nomeDestinoExiste = scanner.next();
+
+                    int indiceOrigemExiste  = grafo.indiceVertice(nomeOrigemExiste);
+                    int indiceDestinoExiste = grafo.indiceVertice(nomeDestinoExiste);
+
+                    if (indiceOrigemExiste == -1) {
+                        System.out.println("Vertice '" + nomeOrigemExiste + "' nao encontrado.");
+                        break;
+                    }
+                    if (indiceDestinoExiste == -1) {
+                        System.out.println("Vertice '" + nomeDestinoExiste + "' nao encontrado.");
+                        break;
+                    }
+
+                    boolean existe = grafo.existeAresta(indiceOrigemExiste, indiceDestinoExiste);
+                    System.out.println("Aresta existe: " + existe);
+                    break;
+
+                case 6:
+                    System.out.print("Nome do vertice: ");
+                    String nomeVizinhos = scanner.next();
+                    int indiceVizinhos = grafo.indiceVertice(nomeVizinhos);
+
+                    if (indiceVizinhos == -1) {
+                        System.out.println("Vertice '" + nomeVizinhos + "' nao encontrado.");
+                        break;
+                    }
+
+                    System.out.print("Vizinhos de " + nomeVizinhos + ": ");
+                    for (int i = 0; i < grafo.retornarVizinhos(indiceVizinhos).size(); i++) {
+                        System.out.print(grafo.labelVertice(grafo.retornarVizinhos(indiceVizinhos).get(i)) + " ");
+                    }
+                    System.out.println();
+                    break;
+
+                case 7:
+                    grafo.imprimeGrafo();
+                    break;
+
+                case 8:
+                    System.out.print("Vertice de origem: ");
+                    String nomeBFS = scanner.next();
+                    int indiceBFS = grafo.indiceVertice(nomeBFS);
+
+                    if (indiceBFS == -1) {
+                        System.out.println("Vertice '" + nomeBFS + "' nao encontrado.");
+                        break;
+                    }
+
+                    grafo.buscaEmLargura(indiceBFS);
+                    break;
+
+                case 9:
+                    System.out.print("Vertice de origem: ");
+                    String nomeDFS = scanner.next();
+                    int indiceDFS = grafo.indiceVertice(nomeDFS);
+
+                    if (indiceDFS == -1) {
+                        System.out.println("Vertice '" + nomeDFS + "' nao encontrado.");
+                        break;
+                    }
+
+                    grafo.buscaEmProfundidade(indiceDFS);
+                    break;
+
+                case 10:
+                    if (!ponderado) {
+                        System.out.println("Dijkstra requer um grafo ponderado.");
+                        break;
+                    }
+
+                    System.out.print("Vertice de origem: ");
+                    String nomeDijkstra = scanner.next();
+                    int indiceDijkstra = grafo.indiceVertice(nomeDijkstra);
+
+                    if (indiceDijkstra == -1) {
+                        System.out.println("Vertice '" + nomeDijkstra + "' nao encontrado.");
+                        break;
+                    }
+
+                    grafo.executarDijkstra(indiceDijkstra);
+                    break;
+
+                case 0:
+                    break;
+
+                default:
+                    System.out.println("Opcao invalida.");
+                    break;
+            }
+        }
+
+        scanner.close();
     }
 }
