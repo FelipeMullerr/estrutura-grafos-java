@@ -33,16 +33,18 @@ public class GrafoMatriz extends Grafo {
 
     @Override
     public boolean inserirVertice(String label) {
+        // cria novas estruturas com tamanho maior
         String[] novoVertices = new String[tamanho + 1];
         float[][] novaMatriz = new float[tamanho + 1][tamanho + 1];
 
+        // copia a matriz para a nova
         for (int i = 0; i < tamanho; i++) {
             novoVertices[i] = vertices[i];
             for (int j = 0; j < tamanho; j++) {
                 novaMatriz[i][j] = matriz[i][j];
             }
         }
-
+        // insere o novo vertice
         novoVertices[tamanho] = label;
 
         vertices = novoVertices;
@@ -65,6 +67,8 @@ public class GrafoMatriz extends Grafo {
             novoVertices[ni++] = vertices[i];
         }
 
+        // percore a matriz antiga, inserindo na nova usando ni e nj
+        // se o indice for o mesmo do vertice que foi removido, pula
         ni = 0;
         for (int i = 0; i < tamanho; i++) {
             if (i == indice) continue;
