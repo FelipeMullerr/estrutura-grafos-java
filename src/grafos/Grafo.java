@@ -46,11 +46,7 @@ public abstract class Grafo {
         visitado[origem] = true;
         fila.add(origem);
 
-        System.out.print(
-            "Busca Largura com iniciando com o vértice " +
-                labelVertice(origem) +
-                " -> "
-        );
+        System.out.print("Busca Largura com iniciando com o vértice " + labelVertice(origem) + " -> ");
         while (!fila.isEmpty()) {
             int vertice = fila.poll();
             System.out.print(labelVertice(vertice) + " ");
@@ -72,11 +68,7 @@ public abstract class Grafo {
     // DFS
     public void buscaEmProfundidade(int origem) {
         boolean[] visitado = new boolean[tamanhoGrafo()];
-        System.out.print(
-            "\nResultado Busca em Profundidade no vértice " +
-                labelVertice(origem) +
-                " -> "
-        );
+        System.out.print("\nResultado Busca em Profundidade no vértice " + labelVertice(origem) + " -> ");
         execBuscaProfundidade(origem, visitado);
     }
 
@@ -155,11 +147,7 @@ public abstract class Grafo {
             if (vertice == origem) continue;
 
             if (distancia[vertice] == Float.MAX_VALUE) {
-                System.out.println(
-                    "  " +
-                        labelVertice(vertice) +
-                        " | vertice nao conectado a outros vertices (inalcançável)"
-                );
+                System.out.println("  " + labelVertice(vertice) + " | vertice nao conectado a outros vertices (inalcançável)");
                 continue;
             }
 
@@ -176,14 +164,7 @@ public abstract class Grafo {
                 sCaminho += caminho.get(i);
             }
 
-            System.out.println(
-                "  " +
-                    labelVertice(vertice) +
-                    " | distância: " +
-                    distancia[vertice] +
-                    " | caminho: " +
-                    sCaminho
-            );
+            System.out.println("  " + labelVertice(vertice) + " | distância: " + distancia[vertice] + " | caminho: " + sCaminho);
         }
     }
 
