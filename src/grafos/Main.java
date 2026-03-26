@@ -7,6 +7,8 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Grafo grafo = null;
+        boolean ponderado = false;
+        boolean direcionado = false;
 
         System.out.println("=== Configuracao do Grafo ===");
         System.out.println("Tipo de representacao:");
@@ -19,26 +21,40 @@ public class Main {
             tipoRepresentacao = scanner.nextInt();
         }
 
-        System.out.print("Direcionado? (1 = sim, 0 = nao): ");
-        int entradaDirecionado = scanner.nextInt();
-        while (entradaDirecionado != 0 && entradaDirecionado != 1) {
-            System.out.print("Entrada invalida. Digite 1 para sim ou 0 para nao: ");
-            entradaDirecionado = scanner.nextInt();
+        System.out.println("===Deseja Criar o Grafo a partir de um Arquivo?===");
+        System.out.println("1 - Sim");
+        System.out.println("2 - Não");
+        System.out.print("Escolha: ");
+        int tipoCriacao = scanner.nextInt();
+        while(tipoCriacao != 1 && tipoCriacao != 2) {
+            System.out.print("Entrada invalida. Digite 1 para Lista ou 2 para Matriz: ");
+            tipoCriacao = scanner.nextInt();
         }
-        boolean direcionado = entradaDirecionado == 1;
 
-        System.out.print("Ponderado? (1 = sim, 0 = nao): ");
-        int entradaPonderado = scanner.nextInt();
-        while (entradaPonderado != 0 && entradaPonderado != 1) {
-            System.out.print("Entrada invalida. Digite 1 para sim ou 0 para nao: ");
-            entradaPonderado = scanner.nextInt();
-        }
-        boolean ponderado = entradaPonderado == 1;
-
-        if (tipoRepresentacao == 1) {
-            grafo = new GrafoLista(direcionado, ponderado);
+        if(tipoCriacao == 1) {
+            grafo = Grafo.criarGrafoArquivo(tipoRepresentacao);
         } else {
-            grafo = new GrafoMatriz(direcionado, ponderado);
+            System.out.print("Direcionado? (1 = sim, 0 = nao): ");
+            int entradaDirecionado = scanner.nextInt();
+            while (entradaDirecionado != 0 && entradaDirecionado != 1) {
+                System.out.print("Entrada invalida. Digite 1 para sim ou 0 para nao: ");
+                entradaDirecionado = scanner.nextInt();
+            }
+            direcionado = entradaDirecionado == 1;
+
+            System.out.print("Ponderado? (1 = sim, 0 = nao): ");
+            int entradaPonderado = scanner.nextInt();
+            while (entradaPonderado != 0 && entradaPonderado != 1) {
+                System.out.print("Entrada invalida. Digite 1 para sim ou 0 para nao: ");
+                entradaPonderado = scanner.nextInt();
+            }
+            ponderado = entradaPonderado == 1;
+
+            if (tipoRepresentacao == 1) {
+                grafo = new GrafoLista(direcionado, ponderado);
+            } else {
+                grafo = new GrafoMatriz(direcionado, ponderado);
+            }
         }
 
         System.out.println("Grafo criado\n");
@@ -106,7 +122,7 @@ public class Main {
                     }
 
                     float peso = 1;
-                    if (ponderado) {
+                    if (grafo.ponderado) {
                         System.out.print("Peso da aresta: ");
                         peso = scanner.nextFloat();
                     }
@@ -211,7 +227,7 @@ public class Main {
                     break;
 
                 case 10:
-                    if (!ponderado) {
+                    if (!grafo.ponderado) {
                         System.out.println("Dijkstra requer um grafo ponderado.");
                         break;
                     }

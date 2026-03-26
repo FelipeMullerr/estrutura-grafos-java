@@ -3,6 +3,7 @@ package grafos;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Scanner;
 
 public abstract class Grafo {
 
@@ -15,15 +16,23 @@ public abstract class Grafo {
     }
 
     public abstract int tamanhoGrafo();
+
     public abstract int indiceVertice(String label);
+
     public abstract boolean inserirVertice(String label);
+
     public abstract boolean removerVertice(int indice);
+
     public abstract String labelVertice(int indice);
+
     public abstract void imprimeGrafo();
 
     public abstract boolean inserirAresta(int origem, int destino, float peso);
+
     public abstract boolean removerAresta(int origem, int destino);
+
     public abstract boolean existeAresta(int origem, int destino);
+
     public abstract float pesoAresta(int origem, int destino);
 
     public abstract List<Integer> retornarVizinhos(int vertice);
@@ -37,7 +46,11 @@ public abstract class Grafo {
         visitado[origem] = true;
         fila.add(origem);
 
-        System.out.print("Busca Largura com iniciando com o vértice " + labelVertice(origem) + " -> ");
+        System.out.print(
+            "Busca Largura com iniciando com o vértice " +
+                labelVertice(origem) +
+                " -> "
+        );
         while (!fila.isEmpty()) {
             int vertice = fila.poll();
             System.out.print(labelVertice(vertice) + " ");
@@ -59,7 +72,11 @@ public abstract class Grafo {
     // DFS
     public void buscaEmProfundidade(int origem) {
         boolean[] visitado = new boolean[tamanhoGrafo()];
-        System.out.print("\nResultado Busca em Profundidade no vértice " + labelVertice(origem) + " -> ");
+        System.out.print(
+            "\nResultado Busca em Profundidade no vértice " +
+                labelVertice(origem) +
+                " -> "
+        );
         execBuscaProfundidade(origem, visitado);
     }
 
@@ -83,13 +100,13 @@ public abstract class Grafo {
         int totalVertices = tamanhoGrafo();
 
         float[] distancia = new float[totalVertices];
-        int[] anterior  = new int[totalVertices];
-        boolean[] fechado   = new boolean[totalVertices];
+        int[] anterior = new int[totalVertices];
+        boolean[] fechado = new boolean[totalVertices];
 
         // estrutura auxiliar para o dijkstra
         for (int vertice = 0; vertice < totalVertices; vertice++) {
-            fechado[vertice]   = false;
-            anterior[vertice]  = -1;
+            fechado[vertice] = false;
+            anterior[vertice] = -1;
             distancia[vertice] = Float.MAX_VALUE;
         }
 
@@ -100,8 +117,13 @@ public abstract class Grafo {
             // para a primeira iteracao, sempre sera o vertice de origem
             int verticeAtual = -1;
             for (int vertice = 0; vertice < totalVertices; vertice++) {
-                if (!fechado[vertice] && distancia[vertice] != Float.MAX_VALUE) {
-                    if (verticeAtual == -1 || distancia[vertice] < distancia[verticeAtual]) {
+                if (
+                    !fechado[vertice] && distancia[vertice] != Float.MAX_VALUE
+                ) {
+                    if (
+                        verticeAtual == -1 ||
+                        distancia[vertice] < distancia[verticeAtual]
+                    ) {
                         verticeAtual = vertice;
                     }
                 }
@@ -115,7 +137,8 @@ public abstract class Grafo {
             for (int i = 0; i < vizinhos.size(); i++) {
                 int vizinho = vizinhos.get(i);
 
-                float novaDistancia = distancia[verticeAtual] + pesoAresta(verticeAtual, vizinho);
+                float novaDistancia =
+                    distancia[verticeAtual] + pesoAresta(verticeAtual, vizinho);
                 // verificando se a distancia do vizinho é maior que a distancia do vertice atual + peso da aresta
                 if (novaDistancia < distancia[vizinho]) {
                     distancia[vizinho] = novaDistancia;
@@ -132,7 +155,11 @@ public abstract class Grafo {
             if (vertice == origem) continue;
 
             if (distancia[vertice] == Float.MAX_VALUE) {
-                System.out.println("  " + labelVertice(vertice) + " | vertice nao conectado a outros vertices (inalcançável)");
+                System.out.println(
+                    "  " +
+                        labelVertice(vertice) +
+                        " | vertice nao conectado a outros vertices (inalcançável)"
+                );
                 continue;
             }
 
@@ -149,7 +176,62 @@ public abstract class Grafo {
                 sCaminho += caminho.get(i);
             }
 
-            System.out.println("  " + labelVertice(vertice) + " | distância: " + distancia[vertice] + " | caminho: " + sCaminho);
+            System.out.println(
+                "  " +
+                    labelVertice(vertice) +
+                    " | distância: " +
+                    distancia[vertice] +
+                    " | caminho: " +
+                    sCaminho
+            );
         }
+    }
+
+    public static Grafo criarGrafoArquivo(int tipoRepresentacao) {
+        Scanner scanner = new Scanner(System.in);
+
+        Grafo grafo = null;
+        try {
+            java.io.BufferedReader br = new java.io.BufferedReader(
+                new java.io.FileReader("C:\\Minhas Coisas\\Faculdade\\7 Semestre\\Grafos\\M1\\Grafo\\src\\grafos\\teste.txt")
+            );
+            String primeiraLinha = br.readLine();
+
+            String[] partes = primeiraLinha.trim().split("\\s+");
+            int V = Integer.parseInt(partes[0]);
+            int A = Integer.parseInt(partes[1]);
+            boolean direcionado = partes[2].equals("1");
+            boolean ponderado = partes[3].equals("1");
+
+            if (tipoRepresentacao == 1) {
+                grafo = new GrafoLista(direcionado, ponderado);
+            } else {
+                grafo = new GrafoMatriz(direcionado, ponderado);
+            }
+
+            for (int i = 0; i < A; i++) {
+                String linha = br.readLine();
+                if (linha == null) break;
+                String[] dados = linha.trim().split("\\s+");
+                String Ao = dados[0];
+                String Ad = dados[1];
+                float peso = ponderado ? Float.parseFloat(dados[2].replace(",", ".")) : 1.0f;
+
+                // Cria o vertice caso nao exista e posteriormente faz a inserção da aresta
+                if (grafo.indiceVertice(Ao) == -1) grafo.inserirVertice(Ao);
+                if (grafo.indiceVertice(Ad) == -1) grafo.inserirVertice(Ad);
+
+                int idxAo = grafo.indiceVertice(Ao);
+                int idxAd = grafo.indiceVertice(Ad);
+
+                grafo.inserirAresta(idxAo, idxAd, peso);
+            }
+            br.close();
+        } catch (Exception e) {
+            System.out.println("Erro: " + e.getMessage());
+            System.exit(1);
+            return null;
+        }
+        return grafo;
     }
 }
