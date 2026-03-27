@@ -109,13 +109,8 @@ public abstract class Grafo {
             // para a primeira iteracao, sempre sera o vertice de origem
             int verticeAtual = -1;
             for (int vertice = 0; vertice < totalVertices; vertice++) {
-                if (
-                    !fechado[vertice] && distancia[vertice] != Float.MAX_VALUE
-                ) {
-                    if (
-                        verticeAtual == -1 ||
-                        distancia[vertice] < distancia[verticeAtual]
-                    ) {
+                if (!fechado[vertice] && distancia[vertice] != Float.MAX_VALUE) {
+                    if (verticeAtual == -1 || distancia[vertice] < distancia[verticeAtual]) {
                         verticeAtual = vertice;
                     }
                 }
@@ -129,8 +124,7 @@ public abstract class Grafo {
             for (int i = 0; i < vizinhos.size(); i++) {
                 int vizinho = vizinhos.get(i);
 
-                float novaDistancia =
-                    distancia[verticeAtual] + pesoAresta(verticeAtual, vizinho);
+                float novaDistancia = distancia[verticeAtual] + pesoAresta(verticeAtual, vizinho);
                 // verificando se a distancia do vizinho é maior que a distancia do vertice atual + peso da aresta
                 if (novaDistancia < distancia[vizinho]) {
                     distancia[vizinho] = novaDistancia;
@@ -174,7 +168,7 @@ public abstract class Grafo {
         Grafo grafo = null;
         try {
             java.io.BufferedReader br = new java.io.BufferedReader(
-                new java.io.FileReader("C:\\Minhas Coisas\\Faculdade\\7 Semestre\\Grafos\\M1\\Grafo\\src\\grafos\\teste.txt")
+                    new java.io.FileReader("/Users/felipemuller/Documents/Univali/7 Semestre/Grafos/Trabalho M1/estrutura-grafos-java/src/grafos/teste.txt")
             );
             String primeiraLinha = br.readLine();
 

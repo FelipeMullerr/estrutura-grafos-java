@@ -104,7 +104,7 @@ public class GrafoMatriz extends Grafo {
         for (int i = 0; i < tamanho; i++) {
             System.out.printf("%-8s", vertices[i]);
             for (int j = 0; j < tamanho; j++) {
-                System.out.printf("%-8.1f", matriz[i][j]);
+                System.out.printf("%-8.4f", matriz[i][j]);
             }
             System.out.println();
         }

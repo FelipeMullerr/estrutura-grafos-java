@@ -1,5 +1,6 @@
 package grafos;
 
+import java.sql.SQLOutput;
 import java.util.Scanner;
 
 public class Main {
@@ -81,9 +82,19 @@ public class Main {
                 case 1:
                     System.out.print("Nome do vertice: ");
                     String nomeVertice = scanner.next();
-                    grafo.inserirVertice(nomeVertice);
-                    System.out.println("Vertice '" + nomeVertice + "' inserid.");
-                    break;
+
+                    int verticeExiste = -1;
+
+                    verticeExiste = grafo.indiceVertice(nomeVertice);
+
+                    if(verticeExiste == -1) {
+                        grafo.inserirVertice(nomeVertice);
+                        System.out.println("Vertice '" + nomeVertice + "' inserido.");
+                        break;
+                    } else {
+                        System.out.println("O Vertice ja existe no grafo");
+                        break;
+                    }
 
                 case 2:
                     System.out.print("Nome do vertice a remover: ");
