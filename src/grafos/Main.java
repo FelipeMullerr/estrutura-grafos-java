@@ -73,6 +73,10 @@ public class Main {
             System.out.println("8  - Busca em Largura (BFS)");
             System.out.println("9  - Busca em Profundidade (DFS)");
             System.out.println("10 - Dijkstra");
+            System.out.println("11 - Coloração Força bruta");
+            System.out.println("12 - Coloração Welsh Powell");
+            System.out.println("13 - Coloração DSATUR");
+            System.out.println("14 - Coloração com Heurística sem critério de ordem de vértices");
             System.out.println("0  - Sair");
             System.out.print("Escolha: ");
             opcao = scanner.nextInt();
@@ -253,6 +257,22 @@ public class Main {
                     }
 
                     grafo.executarDijkstra(indiceDijkstra);
+                    break;
+
+                case 11:
+                    grafo.coloracaoForcaBruta();
+                    break;
+
+                case 12:
+                    grafo.coloracaoWelshPowell();
+                    break;
+
+                case 13:
+                    grafo.coloracaoDSATUR();
+                    break;
+
+                case 14:
+                    grafo.coloracaoSemCriterio();
                     break;
 
                 case 0:
