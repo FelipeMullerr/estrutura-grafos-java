@@ -170,7 +170,8 @@ public abstract class Grafo {
                 "coloracao100.txt",
                 "coloracaoSlide.txt",
                 "coloracao.txt",
-                "Coloracao-r250-66-65.txt"
+                "Coloracao-r250-66-65.txt",
+                "prim.txt"
         };
 
         System.out.println("\n=== Selecione o arquivo de coloração ===");
@@ -230,6 +231,143 @@ public abstract class Grafo {
         return grafo;
     }
 
+    // ----------------------------- ALGORITMOS DE AGM (M2) -----------------------------
+
+    private void imprimirResultadoAGM(String nomeAlgoritmo, long tempoExecucaoNanos, float somaArestas) {
+        double tempoEmMilissegundos = tempoExecucaoNanos / 1_000_000.0;
+        System.out.println("\n>>> Algoritmo: " + nomeAlgoritmo);
+        System.out.println("Tempo de execução: " + String.format("%.4f", tempoEmMilissegundos) + " ms");
+        System.out.println("Soma das arestas: " + somaArestas);
+    }
+
+    public void primAGM() {
+        int totalVertices = tamanhoGrafo();
+        if (totalVertices == 0) return;
+        System.out.println("Direcionado?" + direcionado);
+        System.out.println("Ponderado?" + ponderado);
+        if (direcionado || !ponderado) {
+            System.out.println("Prim requer um grafo nao direcionado e ponderado.");
+            return;
+        }
+
+        long tempoInicio = System.nanoTime();
+
+        boolean[] controle = new boolean[totalVertices];
+        for (int i = 0; i < totalVertices; i++) {
+            controle[i] = true;
+        }
+
+        // Escolhe um vertice arbitrario A como vertice inicial
+        controle[0] = false; // Remove A do conjunto de Controle
+
+        int restantes = totalVertices - 1;
+
+        float somaArestas = 0;
+
+        while (restantes > 0) {
+            int uEscolhido = -1;
+            int vEscolhido = -1;
+            float menorPeso = Float.MAX_VALUE;
+
+            // Encontra a menor aresta {u, v} com um no Controle e outro fora do Controle
+            for (int u = 0; u < totalVertices; u++) {
+                if (controle[u]) continue;
+                for (int v : retornarVizinhos(u)) {
+                    if (!controle[v]) continue;
+                    float peso = pesoAresta(u, v);
+                    if (peso < menorPeso) {
+                        menorPeso = peso;
+                        uEscolhido = u;
+                        vEscolhido = v;
+                    }
+                }
+            }
+
+            if (uEscolhido == -1) break;
+
+            somaArestas += menorPeso;
+            controle[vEscolhido] = false; // Remove do Controle o vertice da aresta que pertencia a ele
+            restantes--;
+        }
+
+        long tempoFim = System.nanoTime();
+        imprimirResultadoAGM("Prim", tempoFim - tempoInicio, somaArestas);
+    }
+
+    public void kruskalAGM() {
+        int totalVertices = tamanhoGrafo();
+        if (totalVertices == 0) return;
+
+        if (direcionado || !ponderado) {
+            System.out.println("Kruskal requer um grafo nao direcionado e ponderado.");
+            return;
+        }
+
+        long tempoInicio = System.nanoTime();
+
+        List<Integer> arestasU = new ArrayList<>();
+        List<Integer> arestasV = new ArrayList<>();
+        List<Float> arestasPeso = new ArrayList<>();
+        for (int u = 0; u < totalVertices; u++) {
+            for (int v : retornarVizinhos(u)) {
+                if (u < v) {
+                    arestasU.add(u);
+                    arestasV.add(v);
+                    arestasPeso.add(pesoAresta(u, v));
+                }
+            }
+        }
+
+        // Ordena as arestas pelo peso
+        for (int i = 0; i < arestasPeso.size() - 1; i++) {
+            for (int j = 0; j < arestasPeso.size() - 1 - i; j++) {
+                if (arestasPeso.get(j) > arestasPeso.get(j + 1)) {
+                    int uTemp = arestasU.get(j);
+                    int vTemp = arestasV.get(j);
+                    float pTemp = arestasPeso.get(j);
+
+                    arestasU.set(j, arestasU.get(j + 1));
+                    arestasV.set(j, arestasV.get(j + 1));
+                    arestasPeso.set(j, arestasPeso.get(j + 1));
+
+                    arestasU.set(j + 1, uTemp);
+                    arestasV.set(j + 1, vTemp);
+                    arestasPeso.set(j + 1, pTemp);
+                }
+            }
+        }
+
+        int[] floresta = new int[totalVertices];
+        for (int i = 0; i < totalVertices; i++) {
+            floresta[i] = i;
+        }
+
+        float somaArestas = 0;
+
+        for (int i = 0; i < arestasPeso.size(); i++) {
+            int u = arestasU.get(i);
+            int v = arestasV.get(i);
+            float peso = arestasPeso.get(i);
+
+            if (floresta[u] != floresta[v]) {
+                somaArestas += peso;
+
+                int grupoU = floresta[u];
+                int grupoV = floresta[v];
+
+                for (int j = 0; j < totalVertices; j++) {
+                    if (floresta[j] == grupoV) {
+                        floresta[j] = grupoU;
+                    }
+                }
+            }
+        }
+
+        long tempoFim = System.nanoTime();
+        imprimirResultadoAGM("Kruskal", tempoFim - tempoInicio, somaArestas);
+
+    }
+
 
 
 
@@ -263,7 +401,7 @@ public abstract class Grafo {
         long tempoInicio = System.nanoTime();
         int[] atribuicaoCores = new int[quantidadeVertices];
 
-        // Tenta encontrar a solução começando com 2 cores, depois 3, e assim por diante (até N)
+        // Tenta encontrar a solução começando com 2 cores, depois 3, e assim por diante
         for (int limiteCores = 2; limiteCores <= quantidadeVertices; limiteCores++) {
             if (tentarColorirRecursivo(0, limiteCores, atribuicaoCores)) {
                 long tempoFim = System.nanoTime();
@@ -287,7 +425,7 @@ public abstract class Grafo {
                     return true;
                 }
                 
-                // Se não deu certo, limpa a cor (Backtracking)
+                // Se não deu certo, limpa a cor
                 atribuicaoCores[indiceVerticeAtual] = 0;
             }
         }

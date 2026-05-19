@@ -77,6 +77,8 @@ public class Main {
             System.out.println("12 - Coloração Welsh Powell");
             System.out.println("13 - Coloração DSATUR");
             System.out.println("14 - Coloração com Heurística sem critério de ordem de vértices");
+            System.out.println("15 - AGM (Prim)");
+            System.out.println("16 - AGM (Kruskal)");
             System.out.println("0  - Sair");
             System.out.print("Escolha: ");
             opcao = scanner.nextInt();
@@ -273,6 +275,14 @@ public class Main {
 
                 case 14:
                     grafo.coloracaoSemCriterio();
+                    break;
+
+                case 15:
+                    grafo.primAGM();
+                    break;
+
+                case 16:
+                    grafo.kruskalAGM();
                     break;
 
                 case 0:
