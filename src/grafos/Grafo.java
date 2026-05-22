@@ -171,7 +171,9 @@ public abstract class Grafo {
                 "coloracaoSlide.txt",
                 "coloracao.txt",
                 "Coloracao-r250-66-65.txt",
-                "prim.txt"
+                "prim.txt",
+                "kruskal_sparse_2200.txt",
+                "prim_dense_8000.txt"
         };
 
         System.out.println("\n=== Selecione o arquivo de coloração ===");
@@ -233,11 +235,30 @@ public abstract class Grafo {
 
     // ----------------------------- ALGORITMOS DE AGM (M2) -----------------------------
 
-    private void imprimirResultadoAGM(String nomeAlgoritmo, long tempoExecucaoNanos, float somaArestas) {
+    private void imprimirResultadoAGM(String nomeAlgoritmo, long tempoExecucaoNanos, float somaArestas, List<String> solucao) {
         double tempoEmMilissegundos = tempoExecucaoNanos / 1_000_000.0;
         System.out.println("\n>>> Algoritmo: " + nomeAlgoritmo);
         System.out.println("Tempo de execução: " + String.format("%.4f", tempoEmMilissegundos) + " ms");
         System.out.println("Soma das arestas: " + somaArestas);
+        System.out.println("Solução: " + solucao);
+    }
+
+    private void imprimirFlorestaComoArvore(int[] floresta) {
+        int totalVertices = floresta.length;
+        boolean[] grupoImpresso = new boolean[totalVertices];
+
+        for (int i = 0; i < totalVertices; i++) {
+            int grupo = floresta[i];
+            if (grupoImpresso[grupo]) continue;
+            grupoImpresso[grupo] = true;
+
+            System.out.println(labelVertice(grupo));
+            for (int j = 0; j < totalVertices; j++) {
+                if (floresta[j] == grupo && j != grupo) {
+                    System.out.println("|-- " + labelVertice(j));
+                }
+            }
+        }
     }
 
     public void primAGM() {
@@ -262,6 +283,7 @@ public abstract class Grafo {
 
         int restantes = totalVertices - 1;
 
+        List<String> solucao = new ArrayList<>();
         float somaArestas = 0;
 
         while (restantes > 0) {
@@ -271,14 +293,16 @@ public abstract class Grafo {
 
             // Encontra a menor aresta {u, v} com um no Controle e outro fora do Controle
             for (int u = 0; u < totalVertices; u++) {
-                if (controle[u]) continue;
+                System.out.println("Vertice: " + labelVertice(u) + " // Controle: " + controle[u]);
+                if (controle[u]) continue; //precisa ser false (nao estar no controle) para ser o vertice u
                 for (int v : retornarVizinhos(u)) {
-                    if (!controle[v]) continue;
-                    float peso = pesoAresta(u, v);
+                    if (!controle[v]) continue; //precisa ser true (estar no controle) para ser o vertice v
+                    float peso = pesoAresta(u, v); // pega o peso da aresta u-v
                     if (peso < menorPeso) {
                         menorPeso = peso;
                         uEscolhido = u;
                         vEscolhido = v;
+                        System.out.println("--> Aresta candidata: " + labelVertice(u) + " - " + labelVertice(v) + " | peso: " + peso); // remover
                     }
                 }
             }
@@ -287,15 +311,20 @@ public abstract class Grafo {
 
             somaArestas += menorPeso;
             controle[vEscolhido] = false; // Remove do Controle o vertice da aresta que pertencia a ele
+            solucao.add(labelVertice(uEscolhido) + " - " + labelVertice(vEscolhido));
+            System.out.println("------> Aresta adicionada: " + labelVertice(uEscolhido) + " - " + labelVertice(vEscolhido) + " | peso: " + menorPeso); // remover
             restantes--;
         }
 
         long tempoFim = System.nanoTime();
-        imprimirResultadoAGM("Prim", tempoFim - tempoInicio, somaArestas);
+        imprimirResultadoAGM("Prim", tempoFim - tempoInicio, somaArestas, solucao);
     }
 
     public void kruskalAGM() {
         int totalVertices = tamanhoGrafo();
+
+        System.out.println("totalVertices: " + totalVertices);  // remover
+
         if (totalVertices == 0) return;
 
         if (direcionado || !ponderado) {
@@ -310,15 +339,18 @@ public abstract class Grafo {
         List<Float> arestasPeso = new ArrayList<>();
         for (int u = 0; u < totalVertices; u++) {
             for (int v : retornarVizinhos(u)) {
+                System.out.println("u: " + labelVertice(u) + " | v: " + labelVertice(v) + " | peso: " + pesoAresta(u, v)); // remover
                 if (u < v) {
                     arestasU.add(u);
                     arestasV.add(v);
-                    arestasPeso.add(pesoAresta(u, v));
+                    float peso = pesoAresta(u, v);
+                    arestasPeso.add(peso);
+                    System.out.println("Adicionando aresta: " + labelVertice(u) + " - " + labelVertice(v) + " | peso: " + peso); // remover
                 }
             }
         }
 
-        // Ordena as arestas pelo peso
+        // Ordena as arestas pelo peso (Bubble Sort)
         for (int i = 0; i < arestasPeso.size() - 1; i++) {
             for (int j = 0; j < arestasPeso.size() - 1 - i; j++) {
                 if (arestasPeso.get(j) > arestasPeso.get(j + 1)) {
@@ -333,6 +365,7 @@ public abstract class Grafo {
                     arestasU.set(j + 1, uTemp);
                     arestasV.set(j + 1, vTemp);
                     arestasPeso.set(j + 1, pTemp);
+                    // System.out.println("Ordenando aresta: " + labelVertice(uTemp) + " - " + labelVertice(vTemp) + " | peso: " + pTemp); // remover
                 }
             }
         }
@@ -342,6 +375,14 @@ public abstract class Grafo {
             floresta[i] = i;
         }
 
+        System.out.println("Floresta inicial: " + Arrays.toString(floresta)); // remover
+
+        System.out.println("Arestas ordenadas:"); // remover
+        for (int i = 0; i < arestasPeso.size(); i++) {
+            System.out.println("  " + labelVertice(arestasU.get(i)) + " - " + labelVertice(arestasV.get(i)) + " | peso: " + arestasPeso.get(i)); // remover
+        }
+
+        List<String> solucao = new ArrayList<>();
         float somaArestas = 0;
 
         for (int i = 0; i < arestasPeso.size(); i++) {
@@ -349,22 +390,40 @@ public abstract class Grafo {
             int v = arestasV.get(i);
             float peso = arestasPeso.get(i);
 
+            // System.out.println("Verificando aresta: " + labelVertice(u) + " - " + labelVertice(arestasV.get(i)) + " | peso: " + arestasPeso.get(i)); // remover
+
             if (floresta[u] != floresta[v]) {
+                System.out.println("Escolhendo aresta: " + labelVertice(u) + " - " + labelVertice(v) + " | peso: " + peso); // remover
                 somaArestas += peso;
+                solucao.add(labelVertice(u) + " - " + labelVertice(v));
 
                 int grupoU = floresta[u];
                 int grupoV = floresta[v];
+                System.out.println("Grupo do vértice " + labelVertice(u) + ": " + grupoU); // remover
+                System.out.println("Grupo do vértice " + labelVertice(v) + ": " + grupoV); // remover
 
                 for (int j = 0; j < totalVertices; j++) {
+                    System.out.println("Verificando vértice " + labelVertice(j) + " | grupo atual: " + floresta[j]); // remover
                     if (floresta[j] == grupoV) {
                         floresta[j] = grupoU;
+                        System.out.println("Atualizando vértice " + labelVertice(j) + " para grupo " + grupoU); // remover
                     }
                 }
-            }
-        }
 
+                System.out.println("Floresta (hierarquia):");
+                imprimirFlorestaComoArvore(floresta);
+
+                // System.out.println("Aresta escolhida: " + labelVertice(u) + " - " + labelVertice(v) + " | peso: " + peso); // remover
+            }
+            // System.out.println("Processando aresta: " + labelVertice(u) + " - " + labelVertice(v) + " | peso: " + peso); // remover
+
+        }
+        
+        System.out.println("Floresta final: " + Arrays.toString(floresta)); // remover
+        
+        // System.out.println("Solução: " + solucao);
         long tempoFim = System.nanoTime();
-        imprimirResultadoAGM("Kruskal", tempoFim - tempoInicio, somaArestas);
+        imprimirResultadoAGM("Kruskal", tempoFim - tempoInicio, somaArestas, solucao);
 
     }
 
@@ -454,7 +513,7 @@ public abstract class Grafo {
             arrayGraus[i] = retornarVizinhos(i).size();
         }
 
-        // Ordenar os vértices pelo seu grau em ordem decrescente
+        // Ordenar os vértices pelo seu grau em ordem decrescente (Bubble sort)
         for (int i = 0; i < totalVertices - 1; i++) {
             for (int j = 0; j < totalVertices - 1 - i; j++) {
                 int vA = listaVerticesOrdenados[j];
@@ -507,10 +566,12 @@ public abstract class Grafo {
         }
 
         // Colorir o vértice com maior grau com a primeira cor
-        int verticeMaiorGrau = 0;
+        int verticeMaiorGrau = 0; // define o primeiro vértice como o de maior grau inicialmente para fazer as comparações
         for (int i = 1; i < totalVertices; i++) {
+            System.out.println("Vértice: " + labelVertice(i) + " | Grau: " + arrayGraus[i]); // remover
             if (arrayGraus[i] > arrayGraus[verticeMaiorGrau]) {
                 verticeMaiorGrau = i;
+                System.out.println("Vértice de maior grau: " + labelVertice(verticeMaiorGrau) + " | Grau: " + arrayGraus[verticeMaiorGrau]); // remover
             }
         }
         atribuicaoCores[verticeMaiorGrau] = 1;
@@ -518,6 +579,7 @@ public abstract class Grafo {
         int maiorIndiceCorUsada = 1;
 
         while (contadorColoridos < totalVertices) {
+            System.out.println("\nIteração de coloração: " + contadorColoridos);
             int proximoVerticeParaColorir = -1;
             int maiorGrauSaturacaoEncontrado = -1;
 
@@ -525,14 +587,18 @@ public abstract class Grafo {
                 if (atribuicaoCores[i] == 0) {
                     int grauSaturacao = calcularGrauSaturacao(i, atribuicaoCores);
                     
+                    System.out.println("Vértice: " + labelVertice(i) + " | Grau de Saturação: " + grauSaturacao + " | Grau no grafo original: " + arrayGraus[i]); // remover
+
                     // Critério principal: Maior saturação
                     if (grauSaturacao > maiorGrauSaturacaoEncontrado) {
+                        System.out.println("------> Novo vértice com maior grau de saturação encontrado: " + labelVertice(i) + " | Grau de Saturação: " + grauSaturacao); // remover
                         maiorGrauSaturacaoEncontrado = grauSaturacao;
                         proximoVerticeParaColorir = i;
                     } 
                     // Critério de desempate: Maior grau no grafo original
                     else if (grauSaturacao == maiorGrauSaturacaoEncontrado) {
                         if (proximoVerticeParaColorir == -1 || arrayGraus[i] > arrayGraus[proximoVerticeParaColorir]) {
+                            System.out.println("------> Vértice de desempate: " + labelVertice(i) + " | Grau no grafo original: " + arrayGraus[i]); // remover
                             proximoVerticeParaColorir = i;
                         }
                     }
@@ -543,11 +609,13 @@ public abstract class Grafo {
             int corParaAtribuir = 1;
             while (!validarCorSegura(proximoVerticeParaColorir, corParaAtribuir, atribuicaoCores)) {
                 corParaAtribuir++;
+                System.out.println("------> Tentando cor: " + corParaAtribuir); // remover
             }
             
             atribuicaoCores[proximoVerticeParaColorir] = corParaAtribuir;
             if (corParaAtribuir > maiorIndiceCorUsada) maiorIndiceCorUsada = corParaAtribuir;
             contadorColoridos++;
+            System.out.println("Vértice colorido: " + labelVertice(proximoVerticeParaColorir) + " | Cor atribuída: " + corParaAtribuir); // remover
         }
 
         long tempoFim = System.nanoTime();
