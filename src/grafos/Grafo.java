@@ -554,78 +554,71 @@ public abstract class Grafo {
 
         long tempoInicio = System.nanoTime();
 
-        int[] atribuicaoCores = new int[totalVertices];
+        List<Integer>[] vizinhosCache = new List[totalVertices];
         int[] arrayGraus = new int[totalVertices];
         for (int i = 0; i < totalVertices; i++) {
-            arrayGraus[i] = retornarVizinhos(i).size();
+            vizinhosCache[i] = retornarVizinhos(i);
+            arrayGraus[i] = vizinhosCache[i].size();
         }
 
-        // Colorir o vértice com maior grau com a primeira cor
-        int verticeMaiorGrau = 0; // define o primeiro vértice como o de maior grau inicialmente para fazer as comparações
+        int[] atribuicaoCores = new int[totalVertices];
+
+        int[] saturacao = new int[totalVertices];
+        Set<Integer>[] coresVizinhos = new HashSet[totalVertices];
+        for (int i = 0; i < totalVertices; i++) {
+            coresVizinhos[i] = new HashSet<>();
+        }
+
+        int verticeMaiorGrau = 0;
         for (int i = 1; i < totalVertices; i++) {
-            //System.out.println("Vértice: " + labelVertice(i) + " | Grau: " + arrayGraus[i]); // remover
             if (arrayGraus[i] > arrayGraus[verticeMaiorGrau]) {
                 verticeMaiorGrau = i;
-                //System.out.println("Vértice de maior grau: " + labelVertice(verticeMaiorGrau) + " | Grau: " + arrayGraus[verticeMaiorGrau]); // remover
             }
         }
         atribuicaoCores[verticeMaiorGrau] = 1;
         int contadorColoridos = 1;
         int maiorIndiceCorUsada = 1;
 
+        for (int vizinho : vizinhosCache[verticeMaiorGrau]) {
+            if (coresVizinhos[vizinho].add(1)) {
+                saturacao[vizinho]++;
+            }
+        }
+
         while (contadorColoridos < totalVertices) {
-            //System.out.println("\nIteração de coloração: " + contadorColoridos);
-            int proximoVerticeParaColorir = -1;
-            int maiorGrauSaturacaoEncontrado = -1;
+            int proximoVertice = -1;
+            int maiorSat = -1;
 
             for (int i = 0; i < totalVertices; i++) {
-                if (atribuicaoCores[i] == 0) {
-                    int grauSaturacao = calcularGrauSaturacao(i, atribuicaoCores);
-                    
-                    //System.out.println("Vértice: " + labelVertice(i) + " | Grau de Saturação: " + grauSaturacao + " | Grau no grafo original: " + arrayGraus[i]); // remover
-
-                    // Critério principal: Maior saturação
-                    if (grauSaturacao > maiorGrauSaturacaoEncontrado) {
-                        //System.out.println("------> Novo vértice com maior grau de saturação encontrado: " + labelVertice(i) + " | Grau de Saturação: " + grauSaturacao); // remover
-                        maiorGrauSaturacaoEncontrado = grauSaturacao;
-                        proximoVerticeParaColorir = i;
-                    } 
-                    // Critério de desempate: Maior grau no grafo original
-                    else if (grauSaturacao == maiorGrauSaturacaoEncontrado) {
-                        if (proximoVerticeParaColorir == -1 || arrayGraus[i] > arrayGraus[proximoVerticeParaColorir]) {
-                            //System.out.println("------> Vértice de desempate: " + labelVertice(i) + " | Grau no grafo original: " + arrayGraus[i]); // remover
-                            proximoVerticeParaColorir = i;
-                        }
-                    }
+                if (atribuicaoCores[i] != 0) continue;
+                if (saturacao[i] > maiorSat ||
+                   (saturacao[i] == maiorSat && (proximoVertice == -1 || arrayGraus[i] > arrayGraus[proximoVertice]))) {
+                    maiorSat = saturacao[i];
+                    proximoVertice = i;
                 }
             }
 
-            // Encontra a menor cor disponível para o vértice escolhido
-            int corParaAtribuir = 1;
-            while (!validarCorSegura(proximoVerticeParaColorir, corParaAtribuir, atribuicaoCores)) {
-                corParaAtribuir++;
-                //System.out.println("------> Tentando cor: " + corParaAtribuir); // remover
+            boolean[] corUsada = new boolean[maiorIndiceCorUsada + 2];
+            for (int vizinho : vizinhosCache[proximoVertice]) {
+                int cor = atribuicaoCores[vizinho];
+                if (cor > 0) corUsada[cor] = true;
             }
-            
-            atribuicaoCores[proximoVerticeParaColorir] = corParaAtribuir;
+            int corParaAtribuir = 1;
+            while (corUsada[corParaAtribuir]) corParaAtribuir++;
+
+            atribuicaoCores[proximoVertice] = corParaAtribuir;
             if (corParaAtribuir > maiorIndiceCorUsada) maiorIndiceCorUsada = corParaAtribuir;
             contadorColoridos++;
-            //System.out.println("Vértice colorido: " + labelVertice(proximoVerticeParaColorir) + " | Cor atribuída: " + corParaAtribuir); // remover
+
+            for (int vizinho : vizinhosCache[proximoVertice]) {
+                if (atribuicaoCores[vizinho] == 0 && coresVizinhos[vizinho].add(corParaAtribuir)) {
+                    saturacao[vizinho]++;
+                }
+            }
         }
 
         long tempoFim = System.nanoTime();
         imprimirResultadoColoracao("DSATUR", atribuicaoCores, tempoFim - tempoInicio, maiorIndiceCorUsada);
-    }
-
-    private int calcularGrauSaturacao(int indiceVerticeAlvo, int[] atribuicaoCores) {
-        Set<Integer> conjuntoCoresVizinhos = new HashSet<>();
-        for (int indiceVizinho : retornarVizinhos(indiceVerticeAlvo)) {
-            int corDoVizinho = atribuicaoCores[indiceVizinho];
-            if (corDoVizinho != 0) {
-                conjuntoCoresVizinhos.add(corDoVizinho);
-            }
-        }
-        return conjuntoCoresVizinhos.size(); // Saturação é a quantidade de cores distinstas nos vizinhos
     }
 
     public void coloracaoSemCriterio() {
