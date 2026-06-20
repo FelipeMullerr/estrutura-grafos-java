@@ -79,6 +79,8 @@ public class Main {
             System.out.println("14 - Coloração com Heurística sem critério de ordem de vértices");
             System.out.println("15 - AGM (Prim)");
             System.out.println("16 - AGM (Kruskal)");
+            System.out.println("17 - Ford-Fulkerson");
+            System.out.println("18 - Busca Local (Ford-Fulkerson)");
             System.out.println("0  - Sair");
             System.out.print("Escolha: ");
             opcao = scanner.nextInt();
@@ -284,7 +286,49 @@ public class Main {
                 case 16:
                     grafo.kruskalAGM();
                     break;
+                case 17:
+                    System.out.print("Vertice fonte: ");
+                    String nomeFonte = scanner.next();
+                    int indiceFonte = grafo.indiceVertice(nomeFonte);
 
+                    if (indiceFonte == -1) {
+                        System.out.println("Vertice '" + nomeFonte + "' nao encontrado.");
+                        break;
+                    }
+
+                    System.out.print("Vertice sorvedor: ");
+                    String nomeSorvedor = scanner.next();
+                    int indiceSorvedor = grafo.indiceVertice(nomeSorvedor);
+
+                    if (indiceSorvedor == -1) {
+                        System.out.println("Vertice '" + nomeSorvedor + "' nao encontrado.");
+                        break;
+                    }
+
+                    grafo.executarFordFulkerson(indiceFonte, indiceSorvedor);
+                    break;
+
+                case 18:
+                    System.out.print("Vertice fonte: ");
+                    String nomeFonteBL = scanner.next();
+                    int indiceFonteBL = grafo.indiceVertice(nomeFonteBL);
+
+                    if (indiceFonteBL == -1) {
+                        System.out.println("Vertice '" + nomeFonteBL + "' nao encontrado.");
+                        break;
+                    }
+
+                    System.out.print("Vertice sorvedor: ");
+                    String nomeSorvedorBL = scanner.next();
+                    int indiceSorvedorBL = grafo.indiceVertice(nomeSorvedorBL);
+
+                    if (indiceSorvedorBL == -1) {
+                        System.out.println("Vertice '" + nomeSorvedorBL + "' nao encontrado.");
+                        break;
+                    }
+
+                    grafo.buscaLocalFluxoMaximo(indiceFonteBL, indiceSorvedorBL);
+                    break;
                 case 0:
                     break;
 
