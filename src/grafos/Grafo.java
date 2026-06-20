@@ -729,45 +729,45 @@ public abstract class Grafo {
     }
 
     public void buscaLocalFluxoMaximo(int fonte, int sorvedor) {
-            float fluxoOriginal = fordFulkerson(fonte, sorvedor);
-            Grafo solucaoAtual = clonarGrafo();
-            float fluxoAtual = fluxoOriginal;
-            int passos = 0;
-            boolean melhorou = true;
+        float fluxoOriginal = fordFulkerson(fonte, sorvedor);
+        Grafo solucaoAtual = clonarGrafo();
+        float fluxoAtual = fluxoOriginal;
+        int passos = 0;
+        boolean melhorou = true;
 
-            while (melhorou) {
-                melhorou = false;
-                int total = solucaoAtual.tamanhoGrafo();
+        while (melhorou) {
+            melhorou = false;
+            int total = solucaoAtual.tamanhoGrafo();
 
-                List<int[]> arestas = new ArrayList<>();
-                for (int u = 0; u < total; u++)
-                    for (int v : solucaoAtual.retornarVizinhos(u))
-                        arestas.add(new int[]{u, v});
+            List<int[]> arestas = new ArrayList<>();
+            for (int u = 0; u < total; u++)
+                for (int v : solucaoAtual.retornarVizinhos(u))
+                    arestas.add(new int[]{u, v});
 
-                for (int[] aresta : arestas) {
-                    int u = aresta[0], v = aresta[1];
-                    float peso = solucaoAtual.pesoAresta(u, v);
+            for (int[] aresta : arestas) {
+                int u = aresta[0], v = aresta[1];
+                float peso = solucaoAtual.pesoAresta(u, v);
 
-                    Grafo vizinho = solucaoAtual.clonarGrafo();
-                    vizinho.removerAresta(u, v);
-                    vizinho.inserirAresta(v, u, peso);
+                Grafo vizinho = solucaoAtual.clonarGrafo();
+                vizinho.removerAresta(u, v);
+                vizinho.inserirAresta(v, u, peso);
 
-                    float fluxoVizinho = vizinho.fordFulkerson(fonte, sorvedor);
-                    float deltaCusto = fluxoVizinho - fluxoAtual;
+                float fluxoVizinho = vizinho.fordFulkerson(fonte, sorvedor);
+                float deltaCusto = fluxoVizinho - fluxoAtual;
 
-                    if (deltaCusto > 0) {
-                        fluxoAtual = fluxoVizinho;
-                        solucaoAtual = vizinho;
-                        passos++;
-                        melhorou = true;
-                        break;
-                    }
+                if (deltaCusto > 0) {
+                    fluxoAtual = fluxoVizinho;
+                    solucaoAtual = vizinho;
+                    passos++;
+                    melhorou = true;
+                    break;
                 }
             }
-
-            System.out.println("\n>>> Algoritmo: Busca Local - Ford-Fulkerson");
-            System.out.println("Fluxo máximo original: " + (int) fluxoOriginal);
-            System.out.println("Fluxo máximo final: " + (int) fluxoAtual);
-            System.out.println("Número de passos: " + passos);
         }
+
+        System.out.println("\n>>> Algoritmo: Busca Local - Ford-Fulkerson");
+        System.out.println("Fluxo máximo original: " + (int) fluxoOriginal);
+        System.out.println("Fluxo máximo final: " + (int) fluxoAtual);
+        System.out.println("Número de passos: " + passos);
+    }
 }
