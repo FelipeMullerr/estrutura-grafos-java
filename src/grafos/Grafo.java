@@ -645,131 +645,129 @@ public abstract class Grafo {
 
     // ----------------------------- ALGORITMOS DE FLUXO MÁXIMO (M3) -----------------------------
 
-        private boolean dfsCaminhoAumentante(Grafo grafoAuxiliar, int fonte, int sorvedor, int[] anterior) {
-            int total = grafoAuxiliar.tamanhoGrafo();
-            boolean[] visitado = new boolean[total];
+    private boolean dfsCaminhoAumentante(Grafo grafoAuxiliar, int fonte, int sorvedor, int[] anterior) {
+        int total = grafoAuxiliar.tamanhoGrafo();
+        boolean[] visitado = new boolean[total];
 
-            java.util.Deque<Integer> pilha = new java.util.ArrayDeque<>();
-            pilha.push(fonte);
-            visitado[fonte] = true;
-            anterior[fonte] = -1;
+        java.util.Deque<Integer> pilha = new java.util.ArrayDeque<>();
+        pilha.push(fonte);
+        visitado[fonte] = true;
+        anterior[fonte] = -1;
 
-            while (!pilha.isEmpty()) {
-                int u = pilha.pop();
-                if (u == sorvedor) return true;
+        while (!pilha.isEmpty()) {
+            int u = pilha.pop();
+            if (u == sorvedor) return true;
 
-                for (int v : grafoAuxiliar.retornarVizinhos(u)) {
-                    if (!visitado[v]) {
-                        visitado[v] = true;
-                        anterior[v] = u;
-                        pilha.push(v);
+            for (int v : grafoAuxiliar.retornarVizinhos(u)) {
+                if (!visitado[v]) {
+                    visitado[v] = true;
+                    anterior[v] = u;
+                    pilha.push(v);
+                }
+            }
+        }
+        return false;
+    }
+
+    private Grafo clonarGrafo() {
+        int total = tamanhoGrafo();
+        Grafo clone = (this instanceof GrafoLista) ? new GrafoLista(direcionado, ponderado) : new GrafoMatriz(direcionado, ponderado);
+
+        for (int i = 0; i < total; i++)
+            clone.inserirVertice(labelVertice(i));
+
+        for (int u = 0; u < total; u++)
+            for (int v : retornarVizinhos(u))
+                clone.inserirAresta(u, v, pesoAresta(u, v));
+
+        return clone;
+    }
+
+    public float fordFulkerson(int fonte, int sorvedor) {
+        Grafo grafoAuxiliar = clonarGrafo();
+        int total = grafoAuxiliar.tamanhoGrafo();
+        int[] anterior = new int[total];
+        float S = 0;
+        // enquanto existir pelo menos um caminho P de capacidade positiva da fonte até o sorvedor
+        while (dfsCaminhoAumentante(grafoAuxiliar, fonte, sorvedor, anterior)) {
+            // encontra o menor arco A do caminho P
+            float A = Float.MAX_VALUE;
+            for (int v = sorvedor; v != fonte; v = anterior[v]) {
+                int u = anterior[v];
+                if (grafoAuxiliar.pesoAresta(u, v) < A)
+                    A = grafoAuxiliar.pesoAresta(u, v);
+            }
+            S += A;
+            // pra cada arco (u,v) no caminho P
+            for (int v = sorvedor; v != fonte; v = anterior[v]) {
+                int u = anterior[v];
+
+                // subtrai o valor de A no arco (u,v)
+                float novaCapacidade = grafoAuxiliar.pesoAresta(u, v) - A;
+                // se o valor da aresta for 0, remove a aresta pra ela nao ser usada no DFS para encontrar um novo caminho
+                if (novaCapacidade <= 0)
+                    grafoAuxiliar.removerAresta(u, v);
+                else {
+                    grafoAuxiliar.removerAresta(u, v);
+                    grafoAuxiliar.inserirAresta(u, v, novaCapacidade);
+                }
+                // se existe arco (v,u), soma o valor de A, senão cria com valor A
+                if (grafoAuxiliar.existeAresta(v, u))
+                    grafoAuxiliar.inserirAresta(v, u, grafoAuxiliar.pesoAresta(v, u) + A);
+                else
+                    grafoAuxiliar.inserirAresta(v, u, A);
+            }
+        }
+
+        return S;
+    }
+
+    public void executarFordFulkerson(int fonte, int sorvedor) {
+        float S = fordFulkerson(fonte, sorvedor);
+        System.out.println("\n>>> Algoritmo: Ford-Fulkerson");
+        System.out.println("Fluxo máximo: " + (int) S);
+    }
+
+    public void buscaLocalFluxoMaximo(int fonte, int sorvedor) {
+            float fluxoOriginal = fordFulkerson(fonte, sorvedor);
+            Grafo solucaoAtual = clonarGrafo();
+            float fluxoAtual = fluxoOriginal;
+            int passos = 0;
+            boolean melhorou = true;
+
+            while (melhorou) {
+                melhorou = false;
+                int total = solucaoAtual.tamanhoGrafo();
+
+                List<int[]> arestas = new ArrayList<>();
+                for (int u = 0; u < total; u++)
+                    for (int v : solucaoAtual.retornarVizinhos(u))
+                        arestas.add(new int[]{u, v});
+
+                for (int[] aresta : arestas) {
+                    int u = aresta[0], v = aresta[1];
+                    float peso = solucaoAtual.pesoAresta(u, v);
+
+                    Grafo vizinho = solucaoAtual.clonarGrafo();
+                    vizinho.removerAresta(u, v);
+                    vizinho.inserirAresta(v, u, peso);
+
+                    float fluxoVizinho = vizinho.fordFulkerson(fonte, sorvedor);
+                    float deltaCusto = fluxoVizinho - fluxoAtual;
+
+                    if (deltaCusto > 0) {
+                        fluxoAtual = fluxoVizinho;
+                        solucaoAtual = vizinho;
+                        passos++;
+                        melhorou = true;
+                        break;
                     }
                 }
             }
-            return false;
+
+            System.out.println("\n>>> Algoritmo: Busca Local - Ford-Fulkerson");
+            System.out.println("Fluxo máximo original: " + (int) fluxoOriginal);
+            System.out.println("Fluxo máximo final: " + (int) fluxoAtual);
+            System.out.println("Número de passos: " + passos);
         }
-
-        private Grafo clonarGrafo() {
-            int total = tamanhoGrafo();
-            Grafo clone = (this instanceof GrafoLista) ? new GrafoLista(direcionado, ponderado) : new GrafoMatriz(direcionado, ponderado);
-
-            for (int i = 0; i < total; i++)
-                clone.inserirVertice(labelVertice(i));
-
-            for (int u = 0; u < total; u++)
-                for (int v : retornarVizinhos(u))
-                    clone.inserirAresta(u, v, pesoAresta(u, v));
-
-            return clone;
-        }
-
-        public float fordFulkerson(int fonte, int sorvedor) {
-            Grafo grafoAuxiliar = clonarGrafo();
-            int total = grafoAuxiliar.tamanhoGrafo();
-            int[] anterior = new int[total];
-
-            float S = 0;
-
-            // enquanto existir pelo menos um caminho P de capacidade positiva da fonte até o sorvedor
-            while (dfsCaminhoAumentante(grafoAuxiliar, fonte, sorvedor, anterior)) {
-                // encontra o menor arco A do caminho P
-                float A = Float.MAX_VALUE;
-                for (int v = sorvedor; v != fonte; v = anterior[v]) {
-                    int u = anterior[v];
-                    if (grafoAuxiliar.pesoAresta(u, v) < A)
-                        A = grafoAuxiliar.pesoAresta(u, v);
-                }
-                S += A;
-                // pra cada arco (u,v) no caminho P
-                for (int v = sorvedor; v != fonte; v = anterior[v]) {
-                    int u = anterior[v];
-
-                    // subtrai o valor de A no arco (u,v)
-                    float novaCapacidade = grafoAuxiliar.pesoAresta(u, v) - A;
-                    // se o valor da aresta for 0, remove a aresta pra ela nao ser usada no DFS para encontrar um novo caminho
-                    if (novaCapacidade <= 0)
-                        grafoAuxiliar.removerAresta(u, v);
-                    else {
-                        grafoAuxiliar.removerAresta(u, v);
-                        grafoAuxiliar.inserirAresta(u, v, novaCapacidade);
-                    }
-                    // se existe arco (v,u), soma o valor de A, senão cria com valor A
-                    if (grafoAuxiliar.existeAresta(v, u))
-                        grafoAuxiliar.inserirAresta(v, u, grafoAuxiliar.pesoAresta(v, u) + A);
-                    else
-                        grafoAuxiliar.inserirAresta(v, u, A);
-                }
-            }
-
-            return S;
-        }
-
-        public void executarFordFulkerson(int fonte, int sorvedor) {
-            float S = fordFulkerson(fonte, sorvedor);
-            System.out.println("\n>>> Algoritmo: Ford-Fulkerson");
-            System.out.println("Fluxo máximo: " + (int) S);
-        }
-
-        public void buscaLocalFluxoMaximo(int fonte, int sorvedor) {
-                float fluxoOriginal = fordFulkerson(fonte, sorvedor);
-                Grafo solucaoAtual = clonarGrafo();
-                float fluxoAtual = fluxoOriginal;
-                int passos = 0;
-                boolean melhorou = true;
-
-                while (melhorou) {
-                    melhorou = false;
-                    int total = solucaoAtual.tamanhoGrafo();
-
-                    List<int[]> arestas = new ArrayList<>();
-                    for (int u = 0; u < total; u++)
-                        for (int v : solucaoAtual.retornarVizinhos(u))
-                            arestas.add(new int[]{u, v});
-
-                    for (int[] aresta : arestas) {
-                        int u = aresta[0], v = aresta[1];
-                        float peso = solucaoAtual.pesoAresta(u, v);
-
-                        Grafo vizinho = solucaoAtual.clonarGrafo();
-                        vizinho.removerAresta(u, v);
-                        vizinho.inserirAresta(v, u, peso);
-
-                        float fluxoVizinho = vizinho.fordFulkerson(fonte, sorvedor);
-                        float deltaCusto = fluxoVizinho - fluxoAtual;
-
-                        if (deltaCusto > 0) {
-                            fluxoAtual = fluxoVizinho;
-                            solucaoAtual = vizinho;
-                            passos++;
-                            melhorou = true;
-                            break;
-                        }
-                    }
-                }
-
-                System.out.println("\n>>> Algoritmo: Busca Local - Ford-Fulkerson");
-                System.out.println("Fluxo máximo original: " + (int) fluxoOriginal);
-                System.out.println("Fluxo máximo final: " + (int) fluxoAtual);
-                System.out.println("Número de passos: " + passos);
-            }
 }
